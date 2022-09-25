@@ -1,26 +1,30 @@
-import os
+import subprocess
 import json
 
+with open('config.txt') as config:
+    configJson = json.load(config)
+
+    INTERFACE = configJson["INTERFACE"]
+    IP = configJson["IP"]
+    MASK = configJson["MASK"]
+    GATEWAY = configJson["GATEWAY"]
+    DNS = configJson["DNS"]
+
+
 def setFixIP():
-    getstatus = os.system('netsh interface ip show config "Ethernet" | findstr /c:"DHCP" | findstr /c:"Não"' )
+    getstatus = subprocess.call(f'cmd /c netsh interface ip show config name={INTERFACE} | findstr /c:"DHCP" | findstr /c:"Não "')
     if getstatus == 0:
-        print("O modo DHCP está desativado!")
+        print(f'O modo DHCP está desativado na interface {INTERFACE}')
         print("Ativando DHCP...")
-        os.system('cmd /c netsh interface ip set address name="Ethernet" dhcp')
+        subprocess.call(f'cmd /c netsh interface ipv4 set address name={INTERFACE} source=dhcp')
+        subprocess.call(f'cmd /c netsh interface ipv4 set dnsservers name={INTERFACE} source=dhcp')
         print("DHCP Ativado!")
         input("Pressione Enter para sair")
     elif getstatus == 1:
-        print("O modo DHCP está Ativado!")
+        print(f'O modo DHCP está Ativado na interface {INTERFACE}')
         print("Realizando configuração estática...")
-        with open('config.txt') as config:
-            configJson = json.load(config)
-
-            IP = configJson["IP"]
-            MASK = configJson["MASK"]
-            GATEWAY = configJson["GATEWAY"]
-            DNS = configJson["DNS"]
-
-        os.system(f'cmd /c netsh interface ip set address name="Ethernet" static {IP} {MASK} {GATEWAY}')
+        subprocess.call(f'cmd /c netsh interface ip set address name={INTERFACE} static {IP} {MASK} {GATEWAY} store=persistent')
+        subprocess.call(f'cmd /c netsh interface ipv4 set dnsservers name={INTERFACE}  source=static address={DNS} validate=no')
         print(f'IP Setado: :{IP}')
         print(f'MASCARA Setado: :{MASK}')
         print(f'GATEWAY Setado: :{GATEWAY}')
