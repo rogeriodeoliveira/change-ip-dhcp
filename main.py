@@ -12,7 +12,7 @@ with open('config.txt') as config:
 
 
 def setFixIP():
-    getstatus = subprocess.call(f'cmd /c netsh interface ip show config name={INTERFACE} | findstr /c:"DHCP" | findstr /c:"Não "')
+    getstatus = subprocess.call(f'netsh interface ipv4 show config name="Ethernet" | findstr /c:"DHCP" | findstr /c:"Não"',shell=True,stdout=subprocess.DEVNULL)
     if getstatus == 0:
         print(f'O modo DHCP está desativado na interface {INTERFACE}')
         print("Ativando DHCP...")
